@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Send, Sparkle, X } from "lucide-react";
 import axios from "axios";
 import TypewriterText from "./TypewriterText";
+import { LANGFLOW_CONFIG } from "../api/langflow/config";
 
 const ChatInput = ({
   isLoading,
@@ -38,7 +39,6 @@ const ChatInput = ({
   const handleSubmit = async () => {
     console.log(text, "is text");
     if (!text.trim()) return;
-
     setLoading(true);
     setText("");
     setResponse(null);
@@ -57,7 +57,7 @@ const ChatInput = ({
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.LANGFLOW_APPLICATION_TOKEN}`,
+            Authorization: `Bearer ${LANGFLOW_CONFIG.APPLICATION_TOKEN}`,
           },
         }
       );
