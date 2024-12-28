@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LANGFLOW_CONFIG } from "../config";
 import { LangflowClient } from "../utils";
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -34,13 +34,13 @@ export async function POST(req: NextRequest) {
     };
 
     const client = new LangflowClient(
-      LANGFLOW_CONFIG.BASE_URL,
-      LANGFLOW_CONFIG.APPLICATION_TOKEN
+      LANGFLOW_CONFIG.BASE_URL as string,
+      LANGFLOW_CONFIG.APPLICATION_TOKEN as string
     );
 
     const response = await client.initiateSession(
-      LANGFLOW_CONFIG.FLOW_ID,
-      LANGFLOW_CONFIG.LANGFLOW_ID,
+      LANGFLOW_CONFIG.FLOW_ID as string,
+      LANGFLOW_CONFIG.LANGFLOW_ID as string,
       inputValue,
       inputType,
       outputType,
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(response);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json(
       { error: "Failed to run flow", message: error.message },
       { status: 500 }
