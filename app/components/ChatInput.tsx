@@ -1,3 +1,4 @@
+"use client";
 import { useState, useCallback, useRef, useEffect } from "react";
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import { Send, Sparkle, X } from "lucide-react";

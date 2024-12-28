@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
-import Lottie from "react-lottie-player";
 import BackgroundOrbs from "./components/BackgroundOrbs";
 import ChatInput from "./components/ChatInput";
-import lottieJson from "./assets/lottie.json";
+import LottieContainer from "./components/LottieContainer";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -28,19 +27,7 @@ export default function Home() {
       `}
             />
 
-            <div className="relative group m-1">
-              <div className="bg-white rounded-full">
-                <Lottie
-                  className="bg-white rounded-full shadow-2xl
-                       transform transition-all duration-300 
-                       group-hover:scale-105 group-hover:shadow-purple-500/25 
-                       h-48 w-48 md:h-96 md:w-96"
-                  loop
-                  animationData={lottieJson}
-                  play={loading}
-                />
-              </div>
-            </div>
+            <LottieContainer loading={loading} />
           </div>
         </div>
       </div>

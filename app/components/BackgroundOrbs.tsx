@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useRef } from "react";
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 const BackgroundOrbs = () => {
