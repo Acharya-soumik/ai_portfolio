@@ -44,20 +44,7 @@ const ChatInput = ({
     setResponse(null);
     charIndexRef.current = 0;
     frameRef.current = requestAnimationFrame(animate);
-    // const data = await fetch("/api/langflow/run", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     inputValue: "Hello there!",
-    //     inputType: "chat",
-    //     outputType: "chat",
-    //     stream: false,
-    //   }),
-    //   // Add this to ensure the URL is treated as relative to the current origin
-    //   cache: "no-store",
-    // });
+
     try {
       const result = await axios.post(
         "/api/langflow/run",
@@ -70,6 +57,7 @@ const ChatInput = ({
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.LANGFLOW_APPLICATION_TOKEN}`,
           },
         }
       );
