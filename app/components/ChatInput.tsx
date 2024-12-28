@@ -59,12 +59,20 @@ const ChatInput = ({
     //   cache: "no-store",
     // });
     try {
-      const result = await axios.post("/api/langflow/run", {
-        inputValue: text,
-        inputType: "chat",
-        outputType: "chat",
-        stream: false,
-      });
+      const result = await axios.post(
+        "/api/langflow/run",
+        {
+          inputValue: text,
+          inputType: "chat",
+          outputType: "chat",
+          stream: false,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       setResponse(result.data);
     } catch (err: any) {
       setError(err.message);
