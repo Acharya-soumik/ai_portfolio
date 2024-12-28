@@ -16,6 +16,7 @@ export class LangflowClient {
     headers["Authorization"] = `Bearer ${this.applicationToken}`;
     headers["Content-Type"] = "application/json";
     const url = `${this.baseURL}${endpoint}`;
+    console.log({ url });
 
     try {
       const response = await fetch(url, {
@@ -25,6 +26,7 @@ export class LangflowClient {
       });
 
       const responseMessage: any = await response.json();
+      console.log({ responseMessage });
       if (!response.ok) {
         throw new Error(
           `${response.status} ${response.statusText} - ${JSON.stringify(
@@ -49,6 +51,7 @@ export class LangflowClient {
     tweaks: Record<string, any> = {}
   ) {
     const endpoint = `/lf/${langflowId}/api/v1/run/${flowId}?stream=${stream}`;
+    console.log({ endpoint });
     return this.post(endpoint, {
       input_value: inputValue,
       input_type: inputType,
