@@ -5,13 +5,12 @@ import { LangflowClient } from "../utils";
 
 export async function POST(req: NextRequest) {
   try {
-    // Log incoming request
-    console.log("Incoming request body:", await req.text());
+    // Parse incoming request body
+    const body = await req.json().catch(() => {
+      throw new Error("Invalid JSON in request body");
+    });
 
-    // Clone the request since we've read it once
-    const clonedReq = req.clone();
-    const body = await clonedReq.json();
-    console.log({ body });
+    console.log("Parsed request body:", body);
 
     const {
       inputValue,
@@ -45,7 +44,7 @@ export async function POST(req: NextRequest) {
       LANGFLOW_CONFIG.BASE_URL as string,
       LANGFLOW_CONFIG.APPLICATION_TOKEN as string
     );
-    console.log({ client });
+    console.log("Langflow Client Initialized:", { client });
 
     const response = await client.initiateSession(
       LANGFLOW_CONFIG.FLOW_ID as string,
@@ -56,64 +55,54 @@ export async function POST(req: NextRequest) {
       stream,
       tweaks
     );
-    console.log({ response });
 
-    // Handle streaming response
+    console.log("Langflow Response:", { response });
+
+    if (!response) {
+      throw new Error("No response received from Langflow");
+    }
+
     if (stream) {
-      if (!response) {
-        throw new Error("No streaming response received");
-      }
       return NextResponse.json(response);
     }
 
-    // Handle non-streaming response
-    if (!response?.outputs) {
+    if (!response.outputs || response.outputs.length === 0) {
       throw new Error("Invalid response structure: missing outputs");
     }
 
+    // Safely parse the response outputs
     try {
-      const output = response.outputs[0].outputs[0].outputs.message;
+      const output = response.outputs[0]?.outputs[0]?.outputs?.message;
+      if (!output?.message?.text) {
+        throw new Error("Malformed output structure");
+      }
       return NextResponse.json({ message: output.message.text });
     } catch (parseError) {
       console.error("Error parsing response outputs:", parseError);
-      // Return the complete response if we can't parse the expected structure
       return NextResponse.json({
         message: "Could not parse structured output",
         fullResponse: response,
       });
     }
   } catch (error: any) {
-    console.error(
-      "API route error:",
-      { error },
-      {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      }
-    );
+    console.error("API route error:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
 
-    // Check if the error is related to JSON parsing
-    if ((error as any) && error.message.includes("JSON")) {
-      return NextResponse.json(
-        {
-          error: "Invalid JSON response from LangFlow",
-          details: error.message,
-          // Include the raw response if available
-          rawResponse: error.rawResponse,
-        },
-        { status: 422 }
-      );
-    }
+    const isJsonError = error.message?.includes("JSON");
 
-    // Handle other types of errors
     return NextResponse.json(
       {
-        error: "Failed to run flow",
+        error: isJsonError
+          ? "Invalid JSON response from Langflow"
+          : "Failed to run flow",
         message: error.message,
         type: error.constructor.name,
+        ...(isJsonError && { details: error.rawResponse }),
       },
-      { status: 500 }
+      { status: isJsonError ? 422 : 500 }
     );
   }
 }
