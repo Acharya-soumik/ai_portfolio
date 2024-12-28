@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       stream,
       tweaks
     );
-
+    console.log({ response });
     // Log the raw response for debugging
     console.log("Raw LangFlow response:", JSON.stringify(response, null, 2));
 
