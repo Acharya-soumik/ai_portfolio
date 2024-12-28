@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
     // Clone the request since we've read it once
     const clonedReq = req.clone();
     const body = await clonedReq.json();
+    console.log({ body });
 
     const {
       inputValue,
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
       LANGFLOW_CONFIG.BASE_URL as string,
       LANGFLOW_CONFIG.APPLICATION_TOKEN as string
     );
+    console.log({ client });
 
     const response = await client.initiateSession(
       LANGFLOW_CONFIG.FLOW_ID as string,
@@ -55,8 +57,6 @@ export async function POST(req: NextRequest) {
       tweaks
     );
     console.log({ response });
-    // Log the raw response for debugging
-    console.log("Raw LangFlow response:", JSON.stringify(response, null, 2));
 
     // Handle streaming response
     if (stream) {
@@ -83,11 +83,15 @@ export async function POST(req: NextRequest) {
       });
     }
   } catch (error: any) {
-    console.error("API route error:", {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    });
+    console.error(
+      "API route error:",
+      { error },
+      {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      }
+    );
 
     // Check if the error is related to JSON parsing
     if ((error as any) && error.message.includes("JSON")) {
