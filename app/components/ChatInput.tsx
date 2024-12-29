@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import { Send, Sparkle, X } from "lucide-react";
 import axios from "axios";
@@ -16,8 +16,6 @@ const ChatInput = ({
   const [text, setText] = useState("");
   const [error, setError] = useState<null | string>(null);
   const [response, setResponse] = useState<any>(null);
-  const [isFocused, setIsFocused] = useState(false);
-  const [animateInput, setAnimateInput] = useState(false);
   const [animateResponse, setAnimateResponse] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -25,7 +23,6 @@ const ChatInput = ({
   const handleSubmit = async () => {
     if (!text.trim()) return;
     setLoading(true);
-    setAnimateInput(true);
     setResponse(null);
 
     try {
@@ -63,7 +60,6 @@ const ChatInput = ({
   const handleClear = () => {
     setText("");
     setResponse(null);
-    setAnimateInput(false);
     setAnimateResponse(false);
   };
 
@@ -75,6 +71,8 @@ const ChatInput = ({
 
   return (
     <div className="w-full md:w-2/5 h-full flex flex-col justify-end md:justify-center space-y-4 z-10">
+      {error && <p className="text-red-500">something went wrong</p>}
+
       <div
         className={`relative bg-black/30 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 shadow-lg transition-all duration-300 ${
           response ? "h-auto" : "h-[100px]" // Adjust height smoothly
