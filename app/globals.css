@@ -19,3 +19,7 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.h-screen-responsive {
+  @apply h-screen min-h-[100svh];
+}

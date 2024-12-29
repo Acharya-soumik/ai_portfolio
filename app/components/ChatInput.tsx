@@ -17,33 +17,16 @@ const ChatInput = ({
   const [error, setError] = useState<null | string>(null);
   const [response, setResponse] = useState<any>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const frameRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-  const charIndexRef = useRef(0);
+  const [animateInput, setAnimateInput] = useState(false);
+  const [animateResponse, setAnimateResponse] = useState(false);
+
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const animate = useCallback((timestamp: number) => {
-    if (!startTimeRef.current) startTimeRef.current = timestamp;
-    const progress = timestamp - startTimeRef.current;
-
-    if (progress > 30 && charIndexRef.current < response?.message.length) {
-      charIndexRef.current++;
-      startTimeRef.current = timestamp;
-    }
-
-    if (charIndexRef.current < response?.message.length) {
-      frameRef.current = requestAnimationFrame(animate);
-    }
-  }, []);
-
   const handleSubmit = async () => {
-    console.log(text, "is text");
     if (!text.trim()) return;
     setLoading(true);
-    setText("");
+    setAnimateInput(true);
     setResponse(null);
-    charIndexRef.current = 0;
-    frameRef.current = requestAnimationFrame(animate);
 
     try {
       const result = await axios.post(
@@ -62,11 +45,11 @@ const ChatInput = ({
         }
       );
       setResponse(result.data);
+      setAnimateResponse(true);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
-      inputRef.current?.focus();
     }
   };
 
@@ -77,13 +60,12 @@ const ChatInput = ({
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current);
-      }
-    };
-  }, []);
+  const handleClear = () => {
+    setText("");
+    setResponse(null);
+    setAnimateInput(false);
+    setAnimateResponse(false);
+  };
 
   useEffect(() => {
     if (inputRef.current) {
@@ -91,103 +73,73 @@ const ChatInput = ({
     }
   }, [response]);
 
-  const res = response?.message;
-  const handleClear = () => {
-    setResponse(null);
-  };
-
   return (
-    <div className="w-full mt-auto md:mt-0 max-w-3xl bg-transparent rounded-2xl shadow  p-6 transition-all duration-500">
-      <div className="flex justify-between items-center mb-6">
-        <p className="text-white text-xl font-semibold flex items-center gap-3">
-          {isLoading ? (
-            <Sparkle className="text-yellow-400 animate-spin" size={24} />
-          ) : (
-            <Sparkle className="text-yellow-400" size={24} />
+    <div className="w-full md:w-2/5 h-full flex flex-col justify-end md:justify-center space-y-4 z-10">
+      <div
+        className={`relative bg-black/30 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 shadow-lg transition-all duration-300 ${
+          response ? "h-auto" : "h-[100px]" // Adjust height smoothly
+        } overflow-hidden`}
+      >
+        <div className={`relative flex items-center gap-1`}>
+          {!isLoading && !response && (
+            <>
+              <input
+                ref={inputRef}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="w-full bg-black/20 text-white rounded-xl px-4 py-3 pr-12 border border-yellow-400/30 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 focus:outline-none placeholder:text-gray-400 text-lg transition-all duration-300"
+                placeholder="Ask me anything..."
+              />
+              <button
+                onClick={handleSubmit}
+                disabled={!text.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-yellow-400 hover:bg-yellow-300 disabled:bg-gray-700 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none hover:shadow-lg hover:shadow-yellow-400/20"
+              >
+                <Send className="w-5 h-5 text-gray-900" />
+              </button>
+            </>
           )}
-          <TypewriterText text="Ask me something" />
-        </p>
-        {response && (
-          <button
-            onClick={handleClear}
-            className="p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-all duration-300 z-30"
-            aria-label="Clear response"
-          >
-            <X size={20} />
-          </button>
-        )}
-      </div>
+          <div>
+            {(isLoading || response?.message) && (
+              <div className="flex items-center gap-2">
+                {isLoading ? (
+                  <Sparkle
+                    className={`w-10 h-10 animate-spin text-orange-400`}
+                  />
+                ) : (
+                  <Sparkle className={`w-10 h-10`} />
+                )}
 
-      <div className="space-y-6">
-        {!response && !isLoading && (
+                <p className="text-gray-50 text-xl">{text}</p>
+              </div>
+            )}
+            {isLoading && (
+              <p className="animate-pulse text-gray-300 text-sm text-left pl-6">
+                thinking...
+              </p>
+            )}
+          </div>
+        </div>
+
+        {!isLoading && response && (
           <div
-            className={`flex w-full md:w-[70%] bg-black items-center gap-3 bg-gray-800/50 rounded-xl p-3 
-              ring-1 ring-gray-700 transition-all duration-300 
-              ${
-                isFocused
-                  ? "ring-2 ring-purple-500 ring-opacity-50"
-                  : "hover:ring-purple-500/30"
-              }`}
-          >
-            <input
-              ref={inputRef}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyPress={handleKeyPress}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="Ask me anything..."
-              className="w-full bg-transparent text-white focus:outline-none placeholder:text-gray-200 text-lg z-40"
-            />
-            <button
-              onClick={handleSubmit}
-              disabled={!text.trim()}
-              className="p-2 rounded-full bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 
-                disabled:cursor-not-allowed transition-all duration-300 
-                transform hover:scale-105 active:scale-95 focus:outline-none
-                hover:shadow-lg hover:shadow-purple-500/20"
-            >
-              <Send className="w-5 h-5 text-white" />
-            </button>
-          </div>
-        )}
-
-        {isLoading && !response && (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
-                style={{ animationDelay: "0ms" }}
-              />
-              <div
-                className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
-                style={{ animationDelay: "150ms" }}
-              />
-              <div
-                className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"
-                style={{ animationDelay: "300ms" }}
-              />
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 animate-fadeIn">
-            <p className="text-red-400 text-sm">{error}</p>
-          </div>
-        )}
-
-        {!isLoading && res && (
-          <div
-            className="bg-transparent rounded-xl p-6 max-h-[60vh] overflow-y-auto custom-scrollbar 
-              ring-1 ring-gray-700 hover:ring-2 hover:ring-purple-500/30 
-              transition-all duration-300 cursor-pointer"
+            className={`mt-4 bg-black/40 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-all duration-400 transform ${
+              animateResponse
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 -translate-y-5"
+            }`}
           >
             <TypewriterText
-              text={res}
+              text={response.message}
               className="text-white text-lg leading-relaxed"
             />
-            <span className="inline-block w-0.5 h-5 bg-purple-500 ml-1 animate-pulse align-middle" />
+            <button
+              onClick={handleClear}
+              className="absolute top-2 right-2 text-white hover:text-gray-300 transition-colors duration-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         )}
       </div>
