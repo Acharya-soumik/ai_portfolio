@@ -24,6 +24,7 @@ const ChatInput = ({
     if (!text.trim()) return;
     setLoading(true);
     setResponse(null);
+    setError(null);
 
     try {
       const result = await axios.post(
@@ -111,11 +112,6 @@ const ChatInput = ({
 
                 <p className="text-gray-50 text-xl">{text}</p>
               </div>
-            )}
-            {isLoading && (
-              <p className="animate-pulse text-gray-300 text-sm text-left pl-6">
-                thinking...
-              </p>
             )}
           </div>
         </div>
